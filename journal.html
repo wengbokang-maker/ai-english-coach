@@ -3,9 +3,512 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Marnie的AI英语学习日志 — Day 1 到 Day 90 的完整过程记录">
+  <meta name="description" content="Marnie的AI英语学习日志 — 每日计划、任务清单、视频作业，Day 1 到 Day 90 完整记录">
   <title>学习日志 | AI Native 英语学习教练</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ===== 日志页面专属样式 ===== */
+    .journal-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    /* 侧边面板 */
+    .journal-sidebar {
+      position: sticky;
+      top: 80px;
+    }
+    .side-card {
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .side-card h4 {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-text-muted);
+      margin-bottom: 14px;
+    }
+
+    /* 进度环形 */
+    .progress-ring-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .progress-ring {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: conic-gradient(var(--color-primary) calc(var(--pct) * 3.6deg), #e2e8f0 0deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .progress-ring::after {
+      content: '';
+      width: 90px;
+      height: 90px;
+      background: #fff;
+      border-radius: 50%;
+      position: absolute;
+    }
+    .progress-ring .ring-text {
+      position: relative;
+      z-index: 1;
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--color-primary);
+      line-height: 1;
+      text-align: center;
+    }
+    .progress-ring .ring-sub {
+      font-size: 11px;
+      color: var(--color-text-muted);
+    }
+
+    /* 阶段标签 */
+    .phase-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .phase-m1 { background: #dbeafe; color: #1e40af; }
+    .phase-m2 { background: #fef3c7; color: #92400e; }
+    .phase-m3 { background: #d1fae5; color: #065f46; }
+
+    /* 日期导航 */
+    .day-nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .day-nav a {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      color: var(--color-text);
+      text-decoration: none;
+      transition: all .15s;
+    }
+    .day-nav a:hover { background: var(--color-primary); color: #fff; }
+    .day-nav a.active { background: var(--color-primary); color: #fff; font-weight: 600; }
+
+    /* 主内容区 */
+    .journal-main { min-width: 0; }
+
+    /* tab 切换 */
+    .journal-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid var(--color-border);
+      margin-bottom: 24px;
+    }
+    .journal-tab {
+      padding: 12px 28px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all .15s;
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+    }
+    .journal-tab:hover { color: var(--color-text); }
+    .journal-tab.active {
+      color: var(--color-primary);
+      border-bottom-color: var(--color-primary);
+    }
+    .journal-panel { display: none; }
+    .journal-panel.active { display: block; }
+
+    /* 每日计划卡片 */
+    .plan-card {
+      background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+      border: 1px solid #bfdbfe;
+      border-radius: 14px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+    }
+    .plan-card h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1e40af;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .plan-card .plan-subtitle {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 20px;
+    }
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .plan-item {
+      background: #fff;
+      border-radius: 10px;
+      padding: 16px;
+      border: 1px solid #e2e8f0;
+    }
+    .plan-item .plan-icon {
+      font-size: 24px;
+      margin-bottom: 6px;
+    }
+    .plan-item .plan-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+    .plan-item .plan-detail {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      margin-top: 3px;
+    }
+    .plan-item .plan-time {
+      font-size: 11px;
+      color: var(--color-primary);
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    /* 任务清单 */
+    .checklist-section {
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      border-radius: 14px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+    }
+    .checklist-section h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .checklist-progress {
+      font-size: 13px;
+      color: var(--color-text-muted);
+      margin-bottom: 18px;
+    }
+    .checklist-progress .done-count {
+      color: var(--color-success);
+      font-weight: 700;
+    }
+    .checklist-progress .total-count {
+      font-weight: 600;
+    }
+    .task-list { list-style: none; padding: 0; }
+    .task-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid #f1f5f9;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background .1s;
+    }
+    .task-item:hover { background: #f8fafc; }
+    .task-item:last-child { border-bottom: none; }
+    .task-check {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: 2px solid #cbd5e1;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+      margin-top: 1px;
+    }
+    .task-item.done .task-check {
+      background: var(--color-success);
+      border-color: var(--color-success);
+    }
+    .task-check::after {
+      content: '✓';
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      opacity: 0;
+      transform: scale(0.5);
+      transition: all .15s;
+    }
+    .task-item.done .task-check::after {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .task-body { flex: 1; min-width: 0; }
+    .task-title { font-size: 14px; font-weight: 600; }
+    .task-item.done .task-title {
+      text-decoration: line-through;
+      color: var(--color-text-muted);
+    }
+    .task-desc { font-size: 12px; color: var(--color-text-muted); margin-top: 2px; }
+    .task-tag {
+      display: inline-block;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    .tag-must { background: #fef2f2; color: #dc2626; }
+    .tag-opt { background: #f0fdf4; color: #16a34a; }
+
+    /* 视频作业区 */
+    .video-section {
+      background: linear-gradient(135deg, #fef3c7 0%, #fff7ed 100%);
+      border: 2px solid #f59e0b;
+      border-radius: 14px;
+      padding: 32px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .video-section::before {
+      content: '🎬';
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      font-size: 60px;
+      opacity: 0.1;
+    }
+    .video-section h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #92400e;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .video-section .video-subtitle {
+      font-size: 14px;
+      color: #a16207;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    .video-prompts {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px 24px;
+      border: 1px solid #fde68a;
+    }
+    .video-prompts h5 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #92400e;
+      margin-bottom: 10px;
+    }
+    .video-prompts ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+    .video-prompts li {
+      font-size: 14px;
+      line-height: 1.8;
+      color: #475569;
+    }
+    .video-prompts li strong {
+      color: var(--color-text);
+    }
+    .video-tips {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .video-tip {
+      background: #fff;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 12px;
+      color: #64748b;
+      border: 1px solid #fde68a;
+      text-align: center;
+    }
+    .video-tip .tip-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+    .video-empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: #a16207;
+      font-size: 14px;
+    }
+    .video-embed-area {
+      margin-top: 16px;
+    }
+
+    /* 学习内容卡片 */
+    .learn-card {
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      border-radius: 14px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+    }
+    .learn-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .learn-block {
+      padding: 16px 20px;
+      border-radius: 10px;
+      margin-bottom: 14px;
+    }
+    .learn-block.learned {
+      background: #eff6ff;
+      border-left: 3px solid var(--color-primary);
+    }
+    .learn-block.sentence {
+      background: #ecfdf5;
+      border-left: 3px solid var(--color-success);
+    }
+    .learn-block.question {
+      background: #fef2f2;
+      border-left: 3px solid #ef4444;
+    }
+    .learn-block h5 {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .learn-block p {
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .learn-block .english-sentence {
+      font-size: 17px;
+      font-weight: 600;
+      color: #065f46;
+      margin: 4px 0;
+    }
+
+    /* 历史日志列表 */
+    .journal-list {
+      list-style: none;
+      padding: 0;
+    }
+    .journal-item {
+      display: flex;
+      gap: 20px;
+      padding: 20px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .journal-date {
+      flex-shrink: 0;
+      width: 80px;
+      text-align: center;
+    }
+    .day-num {
+      display: block;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--color-primary);
+    }
+    .date-str {
+      font-size: 11px;
+      color: var(--color-text-muted);
+    }
+    .journal-content { flex: 1; min-width: 0; }
+    .journal-content h4 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .journal-content p {
+      font-size: 13px;
+      color: var(--color-text);
+      line-height: 1.6;
+    }
+    .journal-tags {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      background: #f1f5f9;
+      color: var(--color-text-muted);
+      font-weight: 500;
+    }
+    .journal-item .video-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: #92400e;
+      background: #fef3c7;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-weight: 500;
+      margin-left: 6px;
+    }
+
+    /* 空状态 */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--color-text-muted);
+    }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+    /* 响应式 */
+    @media (max-width: 768px) {
+      .journal-layout {
+        grid-template-columns: 1fr;
+      }
+      .journal-sidebar {
+        position: static;
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .side-card {
+        flex: 1;
+        min-width: 140px;
+      }
+      .plan-grid {
+        grid-template-columns: 1fr;
+      }
+      .video-tips {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
 
@@ -30,61 +533,304 @@
 
 <section class="products-header">
   <h1>📓 学习日志</h1>
-  <p>Day 1 到 Day 90，每一天的真实记录。不美化，不省略——踩过的坑和进步都在这。</p>
+  <p>Day 1 到 Day 90——每日计划、任务清单、学习内容、视频作业，全部透明公开。</p>
 </section>
 
 <section class="section">
   <div class="section-inner">
 
-    <div style="display: flex; gap: 12px; margin-bottom: 40px; flex-wrap: wrap;">
-      <span class="tag" style="font-size:0.85rem;padding:6px 16px;">全部</span>
-      <span class="tag" style="font-size:0.85rem;padding:6px 16px;">基础场景</span>
-      <span class="tag" style="font-size:0.85rem;padding:6px 16px;">发音练习</span>
-      <span class="tag" style="font-size:0.85rem;padding:6px 16px;">AI对话</span>
-      <span class="tag" style="font-size:0.85rem;padding:6px 16px;">学习心得</span>
-    </div>
+    <div class="journal-layout" id="app" data-day="18" data-phase="1" data-week="3">
 
-    <ul class="journal-list">
-
-      <li class="journal-item">
-        <div class="journal-date">
-          <span class="day-num">Day 2</span>
-          <span class="date-str">2026.06.08</span>
-        </div>
-        <div class="journal-content">
-          <h4>Self-introduction & Small Talk</h4>
-          <p>Today I practiced introducing myself in English — name, job, where I'm from, and what I do. I used the AI voice mode to practice pronunciation, and the AI corrected my "th" sound in "thirty-nine" and "project manager".</p>
-          <p style="margin-top:6px;"><strong>One new sentence:</strong> "I work as a project manager at a commercial vehicle company."</p>
-          <p style="margin-top:4px;"><strong>Question:</strong> How do I naturally transition from self-introduction to asking about the other person?</p>
-          <div class="journal-tags">
-            <span class="tag">基础场景</span>
-            <span class="tag">发音练习</span>
+      <!-- ===== 左侧栏 ===== -->
+      <aside class="journal-sidebar">
+        <!-- 进度圈 -->
+        <div class="side-card" style="text-align:center;">
+          <h4>📊 学习进度</h4>
+          <div class="progress-ring-wrapper">
+            <div class="progress-ring" style="--pct:20">
+              <div class="ring-text">18<span class="ring-sub">/90天</span></div>
+            </div>
+            <p style="font-size:13px;color:var(--color-text-muted);margin-top:4px;">第 3 周 · 已完成 20%</p>
           </div>
         </div>
-      </li>
 
-      <li class="journal-item">
-        <div class="journal-date">
-          <span class="day-num">Day 1</span>
-          <span class="date-str">2026.06.07</span>
+        <!-- 当前阶段 -->
+        <div class="side-card">
+          <h4>🎯 当前阶段</h4>
+          <span class="phase-badge phase-m1" style="margin-bottom:10px;">📘 第1个月 · 基础重塑</span>
+          <p style="font-size:13px;color:var(--color-text-muted);line-height:1.6;margin-top:8px;">
+            第3周：节奏语调 + 日常生活场景<br>
+            目标：掌握英语节奏感，能完成购物/点餐/问路等场景对话
+          </p>
         </div>
-        <div class="journal-content">
-          <h4>Getting Started — Goal Setting & Baseline</h4>
-          <p>Today I set up my 3-month English speaking plan. I recorded my first self-introduction to establish a baseline, and identified my biggest challenge: I can read and understand English, but I freeze when I need to speak. My goal is to confidently hold a 5-minute daily conversation.</p>
-          <p style="margin-top:6px;"><strong>One new sentence:</strong> "I'm starting a 90-day challenge to improve my spoken English."</p>
-          <p style="margin-top:4px;"><strong>Question:</strong> What's the best way to measure speaking progress week by week?</p>
-          <div class="journal-tags">
-            <span class="tag">学习心得</span>
-            <span class="tag">基础场景</span>
+
+        <!-- 快捷跳转 -->
+        <div class="side-card">
+          <h4>📅 本周日期</h4>
+          <div class="day-nav" style="flex-wrap:wrap;">
+            <a href="#" class="active">Day 18</a>
+            <a href="#" style="opacity:0.5">Day 17</a>
+            <a href="#" style="opacity:0.5">Day 16</a>
+            <a href="#" style="opacity:0.5">Day 15</a>
           </div>
+          <p style="font-size:11px;color:var(--color-text-muted);">点击跳转查看当日完整记录</p>
         </div>
-      </li>
+      </aside>
 
-    </ul>
+      <!-- ===== 主内容区 ===== -->
+      <div class="journal-main">
+        <!-- Tab 切换 -->
+        <div class="journal-tabs">
+          <button class="journal-tab active" onclick="switchTab('today')">📋 今日任务</button>
+          <button class="journal-tab" onclick="switchTab('history')">📓 学习历史</button>
+        </div>
 
-    <div style="text-align:center; margin-top:40px; color:var(--color-text-muted); font-size:0.9rem;">
-      <p>📌 每天更新中。坚持 90 天，每天都有新内容。</p>
-    </div>
+        <!-- ====== 面板：今日任务 ====== -->
+        <div class="journal-panel active" id="panel-today">
+
+          <!-- 一、今日学习计划 -->
+          <div class="plan-card">
+            <h3>📋 今日学习计划</h3>
+            <p class="plan-subtitle">
+              2026年6月24日 · Day 18/90 · 第3周 · 
+              <span class="phase-badge phase-m1">节奏语调 + 生活场景</span>
+            </p>
+            <div class="plan-grid">
+              <div class="plan-item">
+                <div class="plan-icon">🎧</div>
+                <div class="plan-label">听力输入</div>
+                <div class="plan-detail">TED-Ed 动画短片 / BBC 6 Minute English，先盲听再跟读</div>
+                <div class="plan-time">⏱ 30分钟</div>
+              </div>
+              <div class="plan-item">
+                <div class="plan-icon">🗣️</div>
+                <div class="plan-label">发音跟读</div>
+                <div class="plan-detail">回音法模仿英语波浪型语调，重点练习重音节奏</div>
+                <div class="plan-time">⏱ 15分钟</div>
+              </div>
+              <div class="plan-item">
+                <div class="plan-icon">🛒</div>
+                <div class="plan-label">场景对话</div>
+                <div class="plan-detail">今日场景：购物/点餐 — 准备5个常用句型 + 3个应答</div>
+                <div class="plan-time">⏱ 15分钟</div>
+              </div>
+              <div class="plan-item">
+                <div class="plan-icon">🤖</div>
+                <div class="plan-label">AI 语音对话</div>
+                <div class="plan-detail">用豆包/ChatGPT语音模式模拟餐厅点餐全流程</div>
+                <div class="plan-time">⏱ 10分钟</div>
+              </div>
+              <div class="plan-item">
+                <div class="plan-icon">✍️</div>
+                <div class="plan-label">学习总结</div>
+                <div class="plan-detail">按 "Today I learned / One new sentence / My question" 格式输出</div>
+                <div class="plan-time">⏱ 10分钟</div>
+              </div>
+              <div class="plan-item" style="border: 2px solid #f59e0b; background: #fffdf5;">
+                <div class="plan-icon">🎬</div>
+                <div class="plan-label">视频作业 <span class="task-tag tag-must">必做</span></div>
+                <div class="plan-detail">录制1分钟英文口语总结视频，说说今天学了什么、感觉怎么样</div>
+                <div class="plan-time">⏱ 5分钟</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 二、今日任务清单（可勾选） -->
+          <div class="checklist-section">
+            <h3>✅ 今日任务清单</h3>
+            <p class="checklist-progress">
+              已完成 <span class="done-count" id="doneCount">0</span> / <span class="total-count">6</span> 项
+            </p>
+            <ul class="task-list" id="taskList">
+              <li class="task-item" data-id="listen" onclick="toggleTask(this)">
+                <div class="task-check"></div>
+                <div class="task-body">
+                  <div class="task-title">听力输入 <span class="task-tag tag-must">必做</span></div>
+                  <div class="task-desc">TED-Ed 或 BBC 6 Minute English，先盲听→看文本→影子跟读</div>
+                </div>
+              </li>
+              <li class="task-item" data-id="pronounce" onclick="toggleTask(this)">
+                <div class="task-check"></div>
+                <div class="task-body">
+                  <div class="task-title">发音跟读 <span class="task-tag tag-must">必做</span></div>
+                  <div class="task-desc">回音法模仿语调，重点练连读和弱读（如 "not at all" → "no-ta-tall"）</div>
+                </div>
+              </li>
+              <li class="task-item" data-id="scene" onclick="toggleTask(this)">
+                <div class="task-check"></div>
+                <div class="task-body">
+                  <div class="task-title">场景对话练习 <span class="task-tag tag-must">必做</span></div>
+                  <div class="task-desc">今日场景：购物/点餐 — 准备句型 + 练习回答常见问题</div>
+                </div>
+              </li>
+              <li class="task-item" data-id="ai-chat" onclick="toggleTask(this)">
+                <div class="task-check"></div>
+                <div class="task-body">
+                  <div class="task-title">AI 语音对话 <span class="task-tag tag-must">必做</span></div>
+                  <div class="task-desc">用豆包/ChatGPT语音模式，模拟餐厅点餐全流程对话（3-5分钟）</div>
+                </div>
+              </li>
+              <li class="task-item" data-id="summary" onclick="toggleTask(this)">
+                <div class="task-check"></div>
+                <div class="task-body">
+                  <div class="task-title">提交学习总结 <span class="task-tag tag-must">必做</span></div>
+                  <div class="task-desc">按格式输出：Today I learned / One new sentence / My question</div>
+                </div>
+              </li>
+              <li class="task-item" data-id="video" onclick="toggleTask(this)">
+                <div class="task-check"></div>
+                <div class="task-body">
+                  <div class="task-title">🎬 录制视频作业 <span class="task-tag tag-must">必做</span></div>
+                  <div class="task-desc">用英语录1分钟口语总结：今天学了什么 + 感觉怎么样 + 明天的目标</div>
+                </div>
+              </li>
+            </ul>
+            <div style="text-align:center;margin-top:16px;">
+              <button class="btn btn-outline" onclick="resetTodayTasks()" style="font-size:12px;padding:6px 16px;">
+                🔄 重置今日清单
+              </button>
+            </div>
+          </div>
+
+          <!-- 三、🎬 视频作业 -->
+          <div class="video-section">
+            <h3>🎬 每日视频作业</h3>
+            <p class="video-subtitle">
+              每天用 <strong>1分钟英文视频</strong> 总结当天学习。这是口语进步最快的方法——<br>
+              看着镜头说出来，和脑子里默念完全是两回事。录完回看，自己就能听出发音问题。
+            </p>
+
+            <div class="video-prompts">
+              <h5>📝 今天的视频提纲（照这个说就行）</h5>
+              <ol>
+                <li><strong>开场：</strong>"Hi, I'm Marnie. This is Day 18 of my 90-day English challenge."</li>
+                <li><strong>今天学了什么：</strong>"Today I practiced..."（说1-2个具体内容）</li>
+                <li><strong>感觉怎么样：</strong>"I felt..." / "The hardest part was..." / "I'm proud that..."</li>
+                <li><strong>明天的目标：</strong>"Tomorrow I want to focus on..."</li>
+                <li><strong>结束：</strong>"See you tomorrow! Bye!"</li>
+              </ol>
+            </div>
+
+            <div class="video-tips">
+              <div class="video-tip">
+                <span class="tip-icon">📱</span>
+                用手机横屏录制<br>画面稳定即可
+              </div>
+              <div class="video-tip">
+                <span class="tip-icon">⏱️</span>
+                控制在1分钟以内<br>不用剪辑，一遍过
+              </div>
+              <div class="video-tip">
+                <span class="tip-icon">🔄</span>
+                录完自己回看一遍<br>记下想改进的地方
+              </div>
+            </div>
+
+            <!-- 视频嵌入区 -->
+            <div class="video-embed-area" id="videoArea">
+              <div class="video-empty" id="videoEmpty">
+                <div style="font-size:40px;margin-bottom:8px;">📹</div>
+                <p>今天的视频还没上传</p>
+                <p style="font-size:12px; opacity:0.7;">录制完成后告诉我，我帮你更新到这里</p>
+              </div>
+              <div id="videoPlayer" style="display:none;">
+                <video controls style="width:100%;border-radius:10px;" id="todayVideo">
+                  <source src="" type="video/mp4">
+                </video>
+              </div>
+            </div>
+          </div>
+
+          <!-- 四、今日学习内容（提交总结后出现） -->
+          <div class="learn-card" id="todayContent" style="display:none;">
+            <h3>📝 今日学习内容</h3>
+
+            <div class="learn-block learned">
+              <h5>📖 Today I learned / practiced:</h5>
+              <p id="todayLearned"></p>
+            </div>
+
+            <div class="learn-block sentence">
+              <h5>💡 One new sentence I can use:</h5>
+              <p class="english-sentence" id="todaySentence"></p>
+            </div>
+
+            <div class="learn-block question">
+              <h5>❓ My question:</h5>
+              <p id="todayQuestion"></p>
+            </div>
+          </div>
+
+          <!-- 提交总结的入口 -->
+          <div style="text-align:center; padding:30px; color:var(--color-text-muted);" id="submitHint">
+            <div style="font-size:36px;margin-bottom:10px;">✍️</div>
+            <p>完成学习后，用 WorkBuddy 提交今日总结</p>
+            <p style="font-size:12px;">格式：Today I learned / One new sentence / My question</p>
+            <p style="font-size:12px;margin-top:6px;">提交后这里会自动更新</p>
+          </div>
+
+        </div>
+
+        <!-- ====== 面板：学习历史 ====== -->
+        <div class="journal-panel" id="panel-history">
+
+          <!-- 筛选标签 -->
+          <div style="display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap;">
+            <span class="tag" style="font-size:0.85rem;padding:6px 16px;cursor:pointer;background:var(--color-primary);color:#fff;">全部</span>
+            <span class="tag" style="font-size:0.85rem;padding:6px 16px;cursor:pointer;">基础场景</span>
+            <span class="tag" style="font-size:0.85rem;padding:6px 16px;cursor:pointer;">发音练习</span>
+            <span class="tag" style="font-size:0.85rem;padding:6px 16px;cursor:pointer;">AI对话</span>
+            <span class="tag" style="font-size:0.85rem;padding:6px 16px;cursor:pointer;">学习心得</span>
+            <span class="tag" style="font-size:0.85rem;padding:6px 16px;cursor:pointer;">视频作业</span>
+          </div>
+
+          <ul class="journal-list">
+
+            <li class="journal-item">
+              <div class="journal-date">
+                <span class="day-num">Day 2</span>
+                <span class="date-str">2026.06.08</span>
+              </div>
+              <div class="journal-content">
+                <h4>Self-introduction & Small Talk</h4>
+                <p>Today I practiced introducing myself in English — name, job, where I'm from, and what I do. I used the AI voice mode to practice pronunciation, and the AI corrected my "th" sound in "thirty-nine" and "project manager".</p>
+                <p style="margin-top:6px;"><strong>One new sentence:</strong> "I work as a project manager at a commercial vehicle company."</p>
+                <p style="margin-top:4px;"><strong>Question:</strong> How do I naturally transition from self-introduction to asking about the other person?</p>
+                <div class="journal-tags">
+                  <span class="tag">基础场景</span>
+                  <span class="tag">发音练习</span>
+                </div>
+              </div>
+            </li>
+
+            <li class="journal-item">
+              <div class="journal-date">
+                <span class="day-num">Day 1</span>
+                <span class="date-str">2026.06.07</span>
+              </div>
+              <div class="journal-content">
+                <h4>Getting Started — Goal Setting & Baseline</h4>
+                <p>Today I set up my 3-month English speaking plan. I recorded my first self-introduction to establish a baseline, and identified my biggest challenge: I can read and understand English, but I freeze when I need to speak. My goal is to confidently hold a 5-minute daily conversation.</p>
+                <p style="margin-top:6px;"><strong>One new sentence:</strong> "I'm starting a 90-day challenge to improve my spoken English."</p>
+                <p style="margin-top:4px;"><strong>Question:</strong> What's the best way to measure speaking progress week by week?</p>
+                <div class="journal-tags">
+                  <span class="tag">学习心得</span>
+                  <span class="tag">基础场景</span>
+                </div>
+              </div>
+            </li>
+
+          </ul>
+
+          <div style="text-align:center; margin-top:24px; color:var(--color-text-muted); font-size:0.9rem;">
+            <p>📌 每天更新中。坚持 90 天，每天都有新内容。</p>
+          </div>
+
+        </div><!-- /panel-history -->
+
+      </div><!-- /journal-main -->
+    </div><!-- /journal-layout -->
+
   </div>
 </section>
 
@@ -100,5 +846,81 @@
 </footer>
 
 <script src="js/main.js"></script>
+<script>
+  // ===== 常量 =====
+  const TODAY = 18;     // 当前天数（手动更新）
+  const TOTAL = 90;
+
+  // ===== Tab 切换 =====
+  function switchTab(name) {
+    document.querySelectorAll('.journal-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.journal-panel').forEach(p => p.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('panel-' + name).classList.add('active');
+  }
+
+  // ===== 任务清单（localStorage 持久化） =====
+  const STORAGE_KEY = 'journal_tasks_day' + TODAY;
+
+  function loadTasks() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const doneIds = JSON.parse(saved);
+      doneIds.forEach(id => {
+        const el = document.querySelector(`.task-item[data-id="${id}"]`);
+        if (el) el.classList.add('done');
+      });
+    }
+    updateProgress();
+  }
+
+  function saveTasks() {
+    const doneIds = [];
+    document.querySelectorAll('.task-item.done').forEach(el => {
+      doneIds.push(el.dataset.id);
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(doneIds));
+  }
+
+  function toggleTask(el) {
+    el.classList.toggle('done');
+    saveTasks();
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const total = document.querySelectorAll('.task-item').length;
+    const done = document.querySelectorAll('.task-item.done').length;
+    document.getElementById('doneCount').textContent = done;
+
+    // 全部完成时的小庆祝
+    if (done === total && done > 0) {
+      const checklist = document.querySelector('.checklist-section');
+      if (!checklist.querySelector('.all-done-badge')) {
+        const badge = document.createElement('div');
+        badge.className = 'all-done-badge';
+        badge.style.cssText = 'text-align:center;margin-top:12px;font-size:16px;animation:fadeIn .5s;';
+        badge.innerHTML = '🎉 今日任务全部完成！太棒了！';
+        checklist.appendChild(badge);
+      }
+    }
+  }
+
+  function resetTodayTasks() {
+    if (confirm('确定要重置今日所有任务吗？')) {
+      document.querySelectorAll('.task-item.done').forEach(el => el.classList.remove('done'));
+      const badge = document.querySelector('.all-done-badge');
+      if (badge) badge.remove();
+      saveTasks();
+      updateProgress();
+    }
+  }
+
+  // ===== 初始化 =====
+  document.addEventListener('DOMContentLoaded', () => {
+    loadTasks();
+  });
+</script>
+
 </body>
 </html>
